@@ -1,0 +1,12 @@
+# Development files
+tests/
+example/
+
+# Config files
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+
+# Misc
+.github/
+.vscode/
