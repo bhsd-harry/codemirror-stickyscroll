@@ -1,10 +1,12 @@
-# @fazelstudio/codemirror-stickyscroll
+# @bhsd/codemirror-stickyscroll
 
 > VS Code / Monaco-style **sticky scroll** (sticky lines) for [CodeMirror 6](https://codemirror.net/).
 
 <p align="center">
   <img src="preview/image.png" alt="Sticky Scroll Preview" width="750" />
 </p>
+
+This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazel-studio/codemirror-stickyscroll).
 
 Sticky lines keep the *opening* lines of the enclosing scopes (function, class,
 if/loop blocks, …) pinned at the top of the editor while you scroll — exactly
@@ -37,9 +39,7 @@ extension** (no fork of `@codemirror/*`).
 ## Installation
 
 ```bash
-npm install @fazelstudio/codemirror-stickyscroll
-# or
-bun add @fazelstudio/codemirror-stickyscroll
+npm install @bhsd/codemirror-stickyscroll
 ```
 
 The following are **peer dependencies** (already present in any project that
@@ -52,60 +52,6 @@ has a working CodeMirror 6 editor):
 | `@codemirror/language` | ^6.0.0 |
 | `@lezer/common` | ^1.0.0 |
 | `@lezer/highlight` | ^1.0.0 |
-
-They are deliberately **not bundled** (see [Why peer deps?](#why-peer-deps)).
-
-## Usage (vanilla)
-
-```ts
-import { EditorView, basicSetup } from "codemirror";
-import { javascript } from "@codemirror/lang-javascript";
-import { stickyScroll } from "@fazelstudio/codemirror-stickyscroll";
-
-const view = new EditorView({
-  doc: "export function hello() {\n  return 42;\n}",
-  extensions: [
-    basicSetup,
-    javascript(),
-    stickyScroll({ maxStickyLines: 4 }),
-  ],
-  parent: document.getElementById("editor")!,
-});
-```
-
-## Usage (Svelte — target integration)
-
-```svelte
-<script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import { EditorView } from "@codemirror/view";
-  import { javascript } from "@codemirror/lang-javascript";
-  import { stickyScroll } from "@fazelstudio/codemirror-stickyscroll";
-
-  let container: HTMLDivElement;
-  let view: EditorView;
-
-  onMount(() => {
-    view = new EditorView({
-      parent: container,
-      extensions: [
-        // ...your extensions (theme, keymaps, lint, ...)
-        javascript(),
-        stickyScroll({ maxStickyLines: 5 }),
-      ],
-    });
-  });
-
-  onDestroy(() => {
-    view?.destroy();
-  });
-</script>
-
-<div bind:this={container} />
-```
-
-Because it's a pure `ViewPlugin`, the bar is destroyed together with the editor
-instance (tabs closing, runtime reconfiguration) — no leaks.
 
 ## API
 
@@ -144,20 +90,7 @@ import {
   stickyScrollBaseTheme,    // layout-only base theme (no token colors)
   type StickyScrollOptions,
   type StickyLine,
-} from "@fazelstudio/codemirror-stickyscroll";
-```
-
-### Disable / enable at runtime
-
-```ts
-import { Compartment } from "@codemirror/state";
-import { stickyScroll } from "@fazelstudio/codemirror-stickyscroll";
-
-const sticky = new Compartment();
-// in extensions:  sticky.of(stickyScroll({ maxStickyLines: 3 }))
-
-view.dispatch({ effects: sticky.reconfigure([]) });                    // off
-view.dispatch({ effects: sticky.reconfigure(stickyScroll()) });        // on
+} from "@bhsd/codemirror-stickyscroll";
 ```
 
 ## Styling
@@ -211,27 +144,7 @@ not on pure scroll).
 ## Language support
 
 Works out of the box with any `@codemirror/lang-*` (or community grammar) that
-registers folding — JS/TS, Rust, Python, Java, Go, C#, etc. Legacy
-`StreamLanguage` modes (no Lezer tree, no `foldNodeProp`) are **not** supported;
-for those, the extension silently does nothing (§ graceful degradation).
-
-## Why peer deps?
-
-`Facet`, `StateField`, `ViewPlugin` and other CodeMirror primitives are
-identified by **JavaScript object identity**. If this package bundled its own
-copy of `@codemirror/state`, its facets/plugins would silently never match the
-ones in the host app. Keeping them as peer dependencies guarantees a single
-module instance. npm/bun installs matching versions automatically if missing.
-
-## Development
-
-```bash
-npm install
-npm run dev      # Vite demo in example/
-npm test         # vitest unit tests (compute algorithm + plugin lifecycle)
-npm run typecheck
-npm run build    # tsup → ESM + CJS + .d.ts into dist/
-```
+registers folding — JS/TS, Rust, Python, Java, Go, C#, etc.
 
 ## License
 

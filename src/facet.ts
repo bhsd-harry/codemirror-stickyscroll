@@ -37,9 +37,9 @@ export interface StickyScrollOptions {
 /** Resolved configuration produced by `stickyScrollFacet`. */
 export interface StickyScrollConfig
   extends Required<Pick<StickyScrollOptions, "maxStickyLines" | "minBlockLines" | "excludeNode">> {
-  highlightStyle?: HighlightStyle;
-  onLineClick?: (lineNumber: number) => void;
-  class?: string;
+  highlightStyle?: HighlightStyle | undefined;
+  onLineClick?: ((lineNumber: number) => void) | undefined;
+  class?: string | undefined;
 }
 
 /**
@@ -74,9 +74,8 @@ const JS_TS_DENYLIST = new Set([
  * For languages where precision matters, pass a language-specific
  * `excludeNode` via `StickyScrollOptions`.
  */
-const LITERAL_NODE_PATTERN = /^(Object|Array|List|Dict(ionary)?|Set|Record|Map|Tuple)(Expression|Literal|Pattern)?$/;
-const COMMENT_NODE_PATTERN = /Comment$/;
-const IMPORT_NODE_PATTERN = /^(Import|Use)(Declaration|Statement|Item|Spec)?$/;
+const LITERAL_NODE_PATTERN = /^(?:Object|Array|List|Dict(?:ionary)?|Set|Record|Map|Tuple)(?:Expression|Literal|Pattern)?$/;
+const IMPORT_NODE_PATTERN = /^(?:Import|Use)(?:Declaration|Statement|Item|Spec)?$/;
 
 /**
  * Default denylist (see §4.3 of the design doc): nodes that *are* foldable but
@@ -92,13 +91,13 @@ export const defaultExcludeNode = (nodeName: string, langName?: string): boolean
   // Because the entire JSON file consists of Objects/Arrays, excluding them
   // would completely disable sticky scroll for the file.
   if (langName === "json") {
-    return COMMENT_NODE_PATTERN.test(nodeName);
+    return nodeName.endsWith("Comment");
   }
 
   if (JS_TS_DENYLIST.has(nodeName)) return true;
   return (
     LITERAL_NODE_PATTERN.test(nodeName) ||
-    COMMENT_NODE_PATTERN.test(nodeName) ||
+    nodeName.endsWith("Comment") ||
     IMPORT_NODE_PATTERN.test(nodeName)
   );
 };

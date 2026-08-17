@@ -41,7 +41,7 @@ export function getStickyContext(view: EditorView, config: StickyScrollConfig): 
   const lang = state.facet(language);
   if (!lang) return [];
   const tree = syntaxTree(state);
-  if (!tree || tree.length === 0) return [];
+  if (tree.length === 0) return [];
 
   // Calculate the document-relative Y of the top edge of the visible viewport.
   // `view.documentTop` is the client Y of the document's top edge.
@@ -61,7 +61,7 @@ export function getStickyContext(view: EditorView, config: StickyScrollConfig): 
 
   // Dynamic clamp: limit sticky bar to max ~40% of the editor height
   const lineHeight = Math.round(view.defaultLineHeight) || 16;
-  const maxDynamic = Math.max(1, Math.floor((view.scrollDOM.clientHeight * 0.4) / lineHeight));
+  const maxDynamic = Math.max(1, Math.floor(view.scrollDOM.clientHeight * 0.4 / lineHeight));
   const maxSticky = Math.min(config.maxStickyLines, maxDynamic);
 
   return getStickyContextForRange(state, topBlock.from, config, parseTree, maxSticky);
@@ -85,7 +85,7 @@ export function getStickyContextForRange(
   if (!lang) return [];
 
   const t = tree ?? syntaxTree(state);
-  if (!t || t.length === 0) return [];
+  if (t.length === 0) return [];
 
   const doc = state.doc;
   if (fromPos > doc.length) return [];

@@ -1,22 +1,25 @@
 {
-  "compilerOptions": {
-    "target": "ES2021",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": ["ES2021", "DOM", "DOM.Iterable"],
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "noEmit": true
-  },
-  "include": ["src", "example", "tests", "tsup.config.ts"]
+	"include": [
+		"src/*.ts"
+	],
+	"compilerOptions": {
+		"target": "ES2019",
+		"module": "es6",
+		"moduleResolution": "bundler",
+		"declaration": true,
+		"rootDir": "src",
+		"outDir": "dist",
+		"alwaysStrict": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitAny": true,
+		"noImplicitOverride": true,
+		"noImplicitThis": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noUncheckedIndexedAccess": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"useUnknownInCatchVariables": true,
+		"skipLibCheck": true
+	}
 }

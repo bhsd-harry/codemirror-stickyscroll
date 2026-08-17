@@ -1,4 +1,4 @@
-import type { HighlightStyle, Language } from "@codemirror/language";
+import type { Language } from "@codemirror/language";
 import { highlightingFor, language } from "@codemirror/language";
 import type { EditorState } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
@@ -57,11 +57,10 @@ function findRenderedLineElement(view: EditorView, lineNumber: number): HTMLElem
   } catch {
     return null;
   }
-  if (!dom) return null;
 
   let el = dom.node instanceof HTMLElement ? dom.node : dom.node.parentElement;
   while (el && !el.classList.contains("cm-line")) el = el.parentElement;
-  return el as HTMLElement | null;
+  return el;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,13 +70,13 @@ function findRenderedLineElement(view: EditorView, lineNumber: number): HTMLElem
 function removeLeadingClosingBrace(el: HTMLElement) {
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
   let node: Node | null;
-  while ((node = walker.nextNode())) {
+  while (node = walker.nextNode()) {
     const text = node.nodeValue || "";
     if (text.trim() === "") continue;
 
-    const match = /^(\s*)\}(\s*)(.*)$/.exec(text);
+    const match = /^(\s*)\}\s*(?!\s)(.*)$/.exec(text);
     if (match) {
-      node.nodeValue = match[1] + match[3];
+      node.nodeValue = match[1]! + match[2]!;
       return;
     }
     break; // Hit a non-whitespace character that isn't '}'
@@ -125,7 +124,7 @@ export function renderLineCode(
   // Ensure we don't clone empty virtual DOM placeholders that CM uses during fast scrolls.
   if (rendered && rendered.textContent !== "") {
     const frag = document.createDocumentFragment();
-    for (const child of Array.from(rendered.childNodes)) {
+    for (const child of rendered.childNodes) {
       frag.appendChild(child.cloneNode(true));
     }
     const el = makeSpan(frag);
@@ -139,9 +138,9 @@ export function renderLineCode(
   if (lang) {
     try {
       const tree = syntaxTree(view.state);
-      const topType: NodeType = tree.type || tree.topNode?.type;
+      const topType: NodeType = tree.type;
       const highlighters: readonly Highlighter[] = config.highlightStyle
-        ? [new StateHighlighter(view.state, topType), config.highlightStyle as HighlightStyle]
+        ? [new StateHighlighter(view.state, topType), config.highlightStyle]
         : [new StateHighlighter(view.state, topType)];
 
       const out = document.createElement("span");

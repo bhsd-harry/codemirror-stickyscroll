@@ -1,5 +1,5 @@
 import { language, syntaxTree } from "@codemirror/language";
-import { Direction, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { Direction, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { getStickyContext } from "./compute";
 import { stickyScrollFacet, type StickyScrollConfig } from "./facet";
 import { renderLineCode, type RowCache } from "./render";
@@ -13,8 +13,8 @@ function isTransparent(bg: string): boolean {
   if (!bg || bg === "transparent" || bg === "rgba(0, 0, 0, 0)") return true;
   const m = /rgba?\(([^)]*)\)/.exec(bg);
   if (m) {
-    const parts = m[1].split(",");
-    if (parts.length === 4 && parseFloat(parts[3].trim()) === 0) return true;
+    const parts = m[1]!.split(",");
+    if (parts.length === 4 && parseFloat(parts[3]!.trim()) === 0) return true;
   }
   return false;
 }
@@ -26,9 +26,9 @@ function isTransparent(bg: string): boolean {
 function alphaOf(bg: string): number | null {
   const m = /rgba?\(([^)]*)\)/.exec(bg);
   if (!m) return null;
-  const parts = m[1].split(",");
+  const parts = m[1]!.split(",");
   if (parts.length === 4) {
-    const a = parseFloat(parts[3].trim());
+    const a = parseFloat(parts[3]!.trim());
     return Number.isNaN(a) ? null : a;
   }
   return null;
@@ -53,17 +53,15 @@ interface GutterMetrics {
 }
 
 function measureGutters(view: EditorView): GutterMetrics {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const guttersEl = view.dom.querySelector(".cm-gutters") as HTMLElement | null;
   if (!guttersEl) return { totalWidth: 0, columns: [] };
 
   const totalWidth = guttersEl.offsetWidth;
-  const columns: GutterColumnMetrics[] = [];
-  for (const child of Array.from(guttersEl.children) as HTMLElement[]) {
-    columns.push({
-      width: child.offsetWidth,
-      className: child.className
-    });
-  }
+  const columns: GutterColumnMetrics[] = Array.from(guttersEl.children as Iterable<HTMLElement>, (child) => ({
+    width: child.offsetWidth,
+    className: child.className
+  }));
   return { totalWidth, columns };
 }
 
@@ -97,7 +95,7 @@ function measureGutters(view: EditorView): GutterMetrics {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class StickyScrollPlugin {
-  private readonly dom: HTMLElement;   // outer container — clips
+  private readonly dom: HTMLElement; // outer container — clips
   private readonly inner: HTMLElement; // inner wrapper — holds the rows
   private readonly view: EditorView;
   private config: StickyScrollConfig;
@@ -156,8 +154,8 @@ class StickyScrollPlugin {
     this.config = update.state.facet(stickyScrollFacet);
 
     if (
-      update.docChanged ||
       configChanged ||
+      update.docChanged ||
       syntaxTree(update.startState) !== syntaxTree(update.state)
     ) {
       this.cache.clear();
@@ -165,11 +163,11 @@ class StickyScrollPlugin {
     }
 
     if (
+      configChanged ||
       update.docChanged ||
       update.viewportChanged ||
       update.geometryChanged ||
       update.selectionSet ||
-      configChanged ||
       update.startState.facet(language) !== update.state.facet(language) ||
       syntaxTree(update.startState) !== syntaxTree(update.state)
     ) {
@@ -195,8 +193,9 @@ class StickyScrollPlugin {
       try {
         this.render();
       } catch (e) {
-        if (typeof console !== "undefined")
+        if (typeof console !== "undefined") {
           console.warn("[codemirror-stickyscroll]", e);
+        }
       }
     });
   }
@@ -245,13 +244,13 @@ class StickyScrollPlugin {
     const totalHeight = totalLines * lh;
 
     // viewport top in document-space coordinates
-    const scrollTop = view.scrollDOM.scrollTop;
+    const { scrollTop } = view.scrollDOM;
     const docTop = view.documentTop;
     const viewportTopY = Math.max(0, scrollTop - docTop);
 
     let slideOffset = 0;
     try {
-      const innermost = lines[totalLines - 1];
+      const innermost = lines[totalLines - 1]!;
       // The end of the innermost scope. We use the bottom of this line as the
       // reference: once it rises above where the innermost row's bottom sits in
       // the bar (totalHeight from the viewport top), the row starts sliding.
@@ -338,7 +337,7 @@ class StickyScrollPlugin {
     lines: StickyLine[],
     scrollX: number,
     head: number,
-    slideOffset = 0
+    slideOffset = 0,
   ) {
     const lh = this.lineHeight;
     const gm = this.gutterMetrics;
@@ -346,7 +345,7 @@ class StickyScrollPlugin {
     const lastIndex = lines.length - 1;
 
     for (let i = 0; i < lines.length && i < rowEls.length; i++) {
-      const line = lines[i];
+      const line = lines[i]!;
       const row = rowEls[i] as HTMLElement;
 
       row.style.height = `${lh}px`;
@@ -376,7 +375,7 @@ class StickyScrollPlugin {
 
         const cols = gutter.children;
         for (let c = 0; c < gm.columns.length && c < cols.length; c++) {
-          (cols[c] as HTMLElement).style.width = `${gm.columns[c].width}px`;
+          (cols[c] as HTMLElement).style.width = `${gm.columns[c]!.width}px`;
         }
       }
 

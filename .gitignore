@@ -1,7 +1,4 @@
-node_modules/
-modules/
 dist/
-example/dist/
-*.log
-.DS_Store
-.vite/
+/.vscode/
+/package-lock.json
+/.eslintcache
