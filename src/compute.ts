@@ -1,7 +1,7 @@
 import type { EditorState } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import type { SyntaxNode, Tree } from "@lezer/common";
-import { ensureSyntaxTree, foldNodeProp, language, syntaxTree } from "@codemirror/language";
+import { ensureSyntaxTree, foldNodeProp, foldService, language, syntaxTree } from "@codemirror/language";
 import type { StickyScrollConfig } from "./facet";
 import type { StickyLine } from "./types";
 
@@ -96,54 +96,82 @@ export function getStickyContextForRange(
 
   const found: StickyLine[] = [];
 
-  let node: SyntaxNode | null = t.resolveInner(fromPos, 0);
-  while (node) {
-    if (!node.type.isTop && node.from < node.to && node.to <= doc.length) {
-      const prop = node.type.prop(foldNodeProp);
-      if (prop) {
-        const foldRange = prop(node, state);
-        if (foldRange) {
-          // Find the semantic owner of this foldable block
-          let owner = node;
-          if (node.parent && !node.parent.type.isTop && !node.parent.type.prop(foldNodeProp)) {
-            owner = node.parent;
-          }
+  const services = state.facet(foldService);
+  if (services.length === 0) {
+    let node: SyntaxNode | null = t.resolveInner(fromPos, 0);
+    while (node) {
+      if (!node.type.isTop && node.from < node.to && node.to <= doc.length) {
+        const prop = node.type.prop(foldNodeProp);
+        if (prop) {
+          const foldRange = prop(node, state);
+          if (foldRange) {
+            // Find the semantic owner of this foldable block
+            let owner = node;
+            if (node.parent && !node.parent.type.isTop && !node.parent.type.prop(foldNodeProp)) {
+              owner = node.parent;
+            }
 
-          const open = doc.lineAt(owner.from);
-          const openLine = open.number;
+            const open = doc.lineAt(owner.from);
+            const openLine = open.number;
 
-          // Opening line must already be scrolled out above the viewport, and must not be blank.
-          if (openLine < topLineNumber && open.text.trim() !== "") {
-            // The denylist describes *foldable* node types (data literals,
-            // comments, imports). `owner` may be a wrapper (e.g.
-            // VariableDeclaration wrapping an ObjectExpression), so evaluate
-            // against the foldable node's own type name.
-            const typeName = node.type.name;
-            if (!exclude(typeName, langName)) {
-              // A scope only counts as "over" once its full semantic end has
-              // passed, so measure from `owner.to` (e.g. the whole try/catch or
-              // if/else statement) instead of just the foldable block. This is
-              // what delays the slide-away until the real closing brace.
-              const close = doc.lineAt(Math.min(owner.to, doc.length));
-              const closeLine = close.number;
+            // Opening line must already be scrolled out above the viewport, and must not be blank.
+            if (openLine < topLineNumber && open.text.trim() !== "") {
+              // The denylist describes *foldable* node types (data literals,
+              // comments, imports). `owner` may be a wrapper (e.g.
+              // VariableDeclaration wrapping an ObjectExpression), so evaluate
+              // against the foldable node's own type name.
+              const typeName = node.type.name;
+              if (!exclude(typeName, langName)) {
+                // A scope only counts as "over" once its full semantic end has
+                // passed, so measure from `owner.to` (e.g. the whole try/catch or
+                // if/else statement) instead of just the foldable block. This is
+                // what delays the slide-away until the real closing brace.
+                const close = doc.lineAt(Math.min(owner.to, doc.length));
+                const closeLine = close.number;
 
-              if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
-                found.push({
-                  lineNumber: openLine,
-                  from: open.from,
-                  to: open.to,
-                  text: open.text,
-                  nodeFrom: owner.from,
-                  nodeTo: owner.to,
-                  closingLine: closeLine,
-                });
+                if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
+                  found.push({
+                    lineNumber: openLine,
+                    from: open.from,
+                    to: open.to,
+                    text: open.text,
+                    nodeFrom: owner.from,
+                    nodeTo: owner.to,
+                    closingLine: closeLine,
+                  });
+                }
               }
             }
           }
         }
       }
+      node = node.parent;
     }
-    node = node.parent;
+  } else {
+    for (let openLine = topLineNumber - 1; openLine > 0; openLine--) {
+      const open = doc.line(openLine);
+      const typeName = open.text.trim();
+      if (!exclude(typeName, langName)) {
+        for (const service of services) {
+          const foldRange = service(state, open.from, open.to);
+          if (foldRange) {
+            const close = doc.lineAt(Math.min(foldRange.to, doc.length));
+            const closeLine = close.number;
+            if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
+              found.push({
+                lineNumber: openLine,
+                from: open.from,
+                to: open.to,
+                text: open.text,
+                nodeFrom: foldRange.from,
+                nodeTo: foldRange.to,
+                closingLine: closeLine,
+              });
+            }
+          }
+        }
+      }
+    }
   }
 
   // `found` is collected innermost → outermost. Reverse to outermost → innermost,
