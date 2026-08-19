@@ -1,5 +1,4 @@
 import { Facet } from "@codemirror/state";
-import type { HighlightStyle } from "@codemirror/language";
 
 /**
  * Public options accepted by `stickyScroll()`.
@@ -20,16 +19,6 @@ export interface StickyScrollOptions {
    * a specific non-JS/TS language.
    */
   excludeNode?: (nodeName: string | undefined, langName: string | undefined, ownerName?: string) => boolean;
-  /**
-   * Extra HighlightStyle re-used when a sticky line has to be re-highlighted
-   * from scratch (opening line too far above the viewport to clone from the DOM).
-   * The active highlighters of the consumer's state are always used first:
-   * this option only *adds* classes. If not provided, only the consumer's
-   * active highlighters are used.
-   */
-  highlightStyle?: HighlightStyle;
-  /** Called after a sticky line is clicked and the jump has been dispatched. */
-  onLineClick?: (lineNumber: number) => void;
   /** Extra CSS class(es) applied to the sticky bar container. */
   class?: string;
 }
@@ -37,8 +26,6 @@ export interface StickyScrollOptions {
 /** Resolved configuration produced by `stickyScrollFacet`. */
 export interface StickyScrollConfig
   extends Required<Pick<StickyScrollOptions, "maxStickyLines" | "minBlockLines" | "excludeNode">> {
-  highlightStyle?: HighlightStyle | undefined;
-  onLineClick?: ((lineNumber: number) => void) | undefined;
   class?: string | undefined;
 }
 
@@ -94,6 +81,7 @@ export const defaultExcludeNode = (nodeName?: string, langName?: string, ownerNa
     return ownerName !== "Property" || nodeName!.endsWith("Comment");
   }
 
+  // DO NOT exclude in stream-base languages.
   if (nodeName === undefined) return false;
   return (
     JS_TS_DENYLIST.has(nodeName) ||
@@ -112,8 +100,6 @@ export function makeStickyScrollConfig(options: StickyScrollOptions | undefined)
     maxStickyLines: options?.maxStickyLines ?? DEFAULT_MAX_STICKY_LINES,
     minBlockLines: options?.minBlockLines ?? DEFAULT_MIN_BLOCK_LINES,
     excludeNode: options?.excludeNode ?? defaultExcludeNode,
-    highlightStyle: options?.highlightStyle,
-    onLineClick: options?.onLineClick,
     class: options?.class,
   };
 }

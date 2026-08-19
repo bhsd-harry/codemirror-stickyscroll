@@ -417,7 +417,7 @@ class StickyScrollPlugin {
     }
 
     // Code span
-    const code = renderLineCode(view, line, this.config, this.cache);
+    const code = renderLineCode(view, line, this.cache);
     code.className = "cm-stickyscroll-code";
     code.style.cssText =
       "display:block;white-space:pre;padding:0 2px 0 6px;" +
@@ -438,7 +438,6 @@ class StickyScrollPlugin {
         }),
       });
       view.focus();
-      this.config.onLineClick?.(line.lineNumber);
     };
     row.addEventListener("click", jump);
     row.addEventListener("keydown", (ev: KeyboardEvent) => {

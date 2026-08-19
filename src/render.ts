@@ -5,7 +5,6 @@ import type { EditorView } from "@codemirror/view";
 import type { NodeType } from "@lezer/common";
 import { highlightTree, type Highlighter, type Tag } from "@lezer/highlight";
 import { syntaxTree } from "@codemirror/language";
-import type { StickyScrollConfig } from "./facet";
 import type { StickyLine } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -104,7 +103,6 @@ function removeLeadingClosingBrace(el: HTMLElement) {
 export function renderLineCode(
   view: EditorView,
   line: StickyLine,
-  config: StickyScrollConfig,
   cache: RowCache
 ): HTMLElement {
   // Cache hit.
@@ -139,9 +137,7 @@ export function renderLineCode(
     try {
       const tree = syntaxTree(view.state);
       const topType: NodeType = tree.type;
-      const highlighters: readonly Highlighter[] = config.highlightStyle
-        ? [new StateHighlighter(view.state, topType), config.highlightStyle]
-        : [new StateHighlighter(view.state, topType)];
+      const highlighters: readonly Highlighter[] = [new StateHighlighter(view.state, topType)];
 
       const out = document.createElement("span");
       out.className = "cm-stickyscroll-code";
