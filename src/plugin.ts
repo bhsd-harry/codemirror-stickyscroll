@@ -243,27 +243,6 @@ class StickyScrollPlugin {
     const totalLines = lines.length;
     const totalHeight = totalLines * lh;
 
-    // viewport top in document-space coordinates
-    const { scrollTop } = view.scrollDOM;
-    const docTop = view.documentTop;
-    const viewportTopY = Math.max(0, scrollTop - docTop);
-
-    let slideOffset = 0;
-    try {
-      const innermost = lines[totalLines - 1]!;
-      // The end of the innermost scope. We use the bottom of this line as the
-      // reference: once it rises above where the innermost row's bottom sits in
-      // the bar (totalHeight from the viewport top), the row starts sliding.
-      const safePos = Math.min(innermost.nodeTo, view.state.doc.length - 1);
-      if (safePos >= 0) {
-        const closingBlock = view.lineBlockAt(safePos);
-        const bottomOfEndLine = closingBlock.bottom - viewportTopY;
-        slideOffset = Math.max(0, Math.min(lh, totalHeight - bottomOfEndLine));
-      }
-    } catch {
-      // height map not settled — keep slideOffset = 0
-    }
-
     // ── Apply layout math ────────────────────────────────────────────────────
     //
     // VSCode:
@@ -274,7 +253,7 @@ class StickyScrollPlugin {
     // The container clips via overflow:hidden; we never translate the whole
     // stack — that would make the OUTERMOST line disappear first, unlike VSCode.
 
-    const containerHeight = Math.max(0, totalHeight - slideOffset);
+    const containerHeight = Math.max(0, totalHeight);
     this.currentHeight = containerHeight;
 
     this.dom.style.height = `${containerHeight}px`;
@@ -282,7 +261,7 @@ class StickyScrollPlugin {
 
     // Apply per-frame row attributes (gutter metrics, scrollLeft, highlight,
     // and the innermost row's slide-away translate).
-    this.updateRowAttrs(lines, view.scrollDOM.scrollLeft, view.state.selection.main.head, slideOffset);
+    this.updateRowAttrs(lines, view.scrollDOM.scrollLeft, view.state.selection.main.head);
     this.dom.dir = view.textDirection === Direction.RTL ? "rtl" : "ltr";
 
     // Add border + shadow ONLY when bar has content.
@@ -337,12 +316,10 @@ class StickyScrollPlugin {
     lines: StickyLine[],
     scrollX: number,
     head: number,
-    slideOffset = 0,
   ) {
     const lh = this.lineHeight;
     const gm = this.gutterMetrics;
     const rowEls = this.inner.children;
-    const lastIndex = lines.length - 1;
 
     for (let i = 0; i < lines.length && i < rowEls.length; i++) {
       const line = lines[i]!;
@@ -355,17 +332,6 @@ class StickyScrollPlugin {
         "cm-stickyscroll-current",
         head >= line.nodeFrom && head <= line.nodeTo
       );
-
-      // VSCode stickyScrollWidget._updatePosition: only the innermost row moves
-      // (slides up underneath), every outer row stays pinned on top of it.
-      if (i === lastIndex) {
-        row.style.zIndex = "0";
-        row.style.transform =
-          slideOffset > 0 ? `translateY(${-slideOffset}px)` : "";
-      } else {
-        row.style.zIndex = "1";
-        row.style.transform = "";
-      }
 
       const gutter = row.firstElementChild as HTMLElement | null;
       if (gutter) {

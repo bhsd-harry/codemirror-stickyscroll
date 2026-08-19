@@ -9,7 +9,7 @@ import type { HighlightStyle } from "@codemirror/language";
 export interface StickyScrollOptions {
   /** Maximum sticky lines shown at once. Default: 4 */
   maxStickyLines?: number;
-  /** Minimum number of lines a scope must span before it becomes sticky. Default: 2 */
+  /** Minimum number of lines a scope must span before it becomes sticky. Default: 6 */
   minBlockLines?: number;
   /**
    * Denylist predicate. When it returns `true` for a foldable syntax node,
@@ -103,7 +103,7 @@ export const defaultExcludeNode = (nodeName: string, langName?: string): boolean
 };
 
 const DEFAULT_MAX_STICKY_LINES = 4;
-const DEFAULT_MIN_BLOCK_LINES = 2;
+const DEFAULT_MIN_BLOCK_LINES = 6;
 
 /** Merge partial options with built-in defaults. */
 export function makeStickyScrollConfig(options: StickyScrollOptions | undefined): StickyScrollConfig {
