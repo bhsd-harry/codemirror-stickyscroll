@@ -19,7 +19,7 @@ export interface StickyScrollOptions {
    * matching for other grammars. Override for fine-tuning, especially for
    * a specific non-JS/TS language.
    */
-  excludeNode?: (nodeName: string, langName: string | undefined) => boolean;
+  excludeNode?: (nodeName: string | undefined, langName: string | undefined, ownerName?: string) => boolean;
   /**
    * Extra HighlightStyle re-used when a sticky line has to be re-highlighted
    * from scratch (opening line too far above the viewport to clone from the DOM).
@@ -86,18 +86,19 @@ const IMPORT_NODE_PATTERN = /^(?:Import|Use)(?:Declaration|Statement|Item|Spec)?
  * match for everything else. Override via `StickyScrollOptions.excludeNode`
  * for a language you need exact behavior on.
  */
-export const defaultExcludeNode = (nodeName: string, langName?: string): boolean => {
+export const defaultExcludeNode = (nodeName?: string, langName?: string, ownerName?: string): boolean => {
   // In pure data languages like JSON, we DO NOT exclude objects/arrays.
   // Because the entire JSON file consists of Objects/Arrays, excluding them
   // would completely disable sticky scroll for the file.
-  if (langName === "json") {
-    return nodeName.endsWith("Comment");
+  if (langName === "json" || langName === "jsonc") {
+    return ownerName !== "Property" || nodeName!.endsWith("Comment");
   }
 
-  if (JS_TS_DENYLIST.has(nodeName)) return true;
+  if (nodeName === undefined) return false;
   return (
-    LITERAL_NODE_PATTERN.test(nodeName) ||
+    JS_TS_DENYLIST.has(nodeName) ||
     nodeName.endsWith("Comment") ||
+    LITERAL_NODE_PATTERN.test(nodeName) ||
     IMPORT_NODE_PATTERN.test(nodeName)
   );
 };

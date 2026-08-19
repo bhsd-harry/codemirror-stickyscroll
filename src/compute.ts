@@ -121,7 +121,7 @@ export function getStickyContextForRange(
               // VariableDeclaration wrapping an ObjectExpression), so evaluate
               // against the foldable node's own type name.
               const typeName = node.type.name;
-              if (!exclude(typeName, langName)) {
+              if (!exclude(typeName, langName, owner.name)) {
                 // A scope only counts as "over" once its full semantic end has
                 // passed, so measure from `owner.to` (e.g. the whole try/catch or
                 // if/else statement) instead of just the foldable block. This is
@@ -150,8 +150,8 @@ export function getStickyContextForRange(
   } else {
     for (let openLine = topLineNumber - 1; openLine > 0; openLine--) {
       const open = doc.line(openLine);
-      const typeName = open.text.trim();
-      if (!exclude(typeName, langName)) {
+      const ownerName = open.text.trim();
+      if (!exclude(undefined, langName, ownerName)) {
         for (const service of services) {
           const foldRange = service(state, open.from, open.to);
           if (foldRange) {
