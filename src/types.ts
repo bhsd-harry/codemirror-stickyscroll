@@ -18,6 +18,4 @@ export interface StickyLine {
   nodeFrom: number;
   /** End position of the whole foldable scope node (e.g. closing brace). */
   nodeTo: number;
-  /** 1-based document line number where the scope closes (nodeTo). */
-  closingLine: number;
 }

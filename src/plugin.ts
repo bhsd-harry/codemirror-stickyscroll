@@ -76,22 +76,10 @@ function measureGutters(view: EditorView): GutterMetrics {
 //                                 (innermost) line has been pushed UP by the
 //                                 approaching section break. Range (−lineHeight, 0].
 //
-//  Slide-away (stickyScrollController.findScrollWidgetState + widget._updatePosition):
-//    The innermost sticky line is the one that disappears first. As the BOTTOM
-//    of its scope's end line approaches the viewport top, the whole bar's
-//    height shrinks from the bottom while the innermost row is pushed up
-//    underneath the row above it (lower z-index). Outer rows never move.
-//
 //  DOM layout (widget):
 //    rootDomNode (.sticky-widget)          overflow:hidden; height set per-frame
 //      sticky-widget-lines                 the rows, absolutely positioned
 //        row × N                           each row has an explicit `top`
-//
-//  Per-frame math (translating to CodeMirror, offset = −lastLineRelativePosition):
-//    • offset            = clamp(totalHeight − (closingLine.bottom − viewportTop), 0, lineHeight)
-//    • container height  = totalHeight − offset          (shrinks from the bottom)
-//    • innermost row     = translateY(−offset), zIndex 0 (slides up underneath)
-//    • outer rows        = unchanged,              zIndex 1 (stay pinned on top)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class StickyScrollPlugin {

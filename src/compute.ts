@@ -137,7 +137,6 @@ export function getStickyContextForRange(
                     text: open.text,
                     nodeFrom: owner.from,
                     nodeTo: owner.to,
-                    closingLine: closeLine,
                   });
                 }
               }
@@ -155,7 +154,8 @@ export function getStickyContextForRange(
         for (const service of services) {
           const foldRange = service(state, open.from, open.to);
           if (foldRange) {
-            const close = doc.lineAt(Math.min(foldRange.to, doc.length));
+            const nodeTo = Math.min(foldRange.to, doc.length);
+            const close = doc.lineAt(nodeTo);
             const closeLine = close.number;
             if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
               found.push({
@@ -164,8 +164,7 @@ export function getStickyContextForRange(
                 to: open.to,
                 text: open.text,
                 nodeFrom: foldRange.from,
-                nodeTo: foldRange.to,
-                closingLine: closeLine,
+                nodeTo,
               });
             }
           }
