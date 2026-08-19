@@ -24,6 +24,8 @@ export const stickyScrollBaseTheme = EditorView.baseTheme({
     backgroundColor: "var(--cm-stickyscroll-bg, #ffffff)",
     color: "inherit",
     font: "inherit",
+    fontFamily: "monospace",
+    tabSize: "4",
   },
 
   "&dark .cm-stickyscroll-container": {
