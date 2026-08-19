@@ -432,7 +432,7 @@ class StickyScrollPlugin {
     const code = renderLineCode(view, line, this.config, this.cache);
     code.className = "cm-stickyscroll-code";
     code.style.cssText =
-      "display:inline;white-space:pre;" +
+      "display:block;white-space:pre;padding:0 2px 0 6px;" +
       (scrollX > 0 ? `transform:translateX(${-scrollX}px);` : "");
 
     row.appendChild(gutter);
