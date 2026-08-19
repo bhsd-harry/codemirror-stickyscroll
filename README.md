@@ -102,10 +102,6 @@ The bar is layout-only by default and always follows the **editor's own theme**
 .cm-stickyscroll-container {
   /* bar background (auto-set from the editor theme; override if you like) */
   --cm-stickyscroll-bg: #1e1e1e;
-  --cm-stickyscroll-border: rgba(128, 128, 128, 0.3);
-  --cm-stickyscroll-lineNumber: #9a9a9a;
-  --cm-stickyscroll-hoverBg: rgba(128, 128, 128, 0.15);
-  --cm-stickyscroll-accent: #4b9edd;
 }
 ```
 

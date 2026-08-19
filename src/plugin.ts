@@ -108,15 +108,11 @@ class StickyScrollPlugin {
     this.dom.className =
       "cm-stickyscroll-container" +
       (this.config.class ? ` ${this.config.class}` : "");
-    this.dom.style.cssText =
-      "position:absolute;top:0;left:0;right:0;z-index:10;" +
-      "overflow:hidden;box-sizing:border-box;pointer-events:none;";
 
     // Inner wrapper — holds the rows; each row is laid out in normal flow and
     // the container clips at its bottom edge (VSCode slide-away).
     this.inner = document.createElement("div");
     this.inner.className = "cm-stickyscroll-inner";
-    this.inner.style.cssText = "pointer-events:auto;";
 
     this.dom.appendChild(this.inner);
     view.dom.appendChild(this.dom);
@@ -255,10 +251,10 @@ class StickyScrollPlugin {
     // Add border + shadow ONLY when bar has content.
     this.dom.style.borderBottom =
       containerHeight > 0
-        ? "1px solid var(--cm-stickyscroll-border, rgba(128,128,128,0.2))"
+        ? "1px solid rgba(128,128,128,.2)"
         : "";
     this.dom.style.boxShadow =
-      containerHeight > 0 ? "0 2px 8px rgba(0,0,0,0.12)" : "";
+      containerHeight > 0 ? "0 2px 8px rgba(0,0,0,.12)" : "";
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -375,26 +371,18 @@ class StickyScrollPlugin {
     row.style.cssText =
       `height:${lh}px;` +
       `line-height:${lh}px;` +
-      `padding-left:${gw}px;` +
-      "display:block;position:relative;overflow:hidden;" +
-      "white-space:pre;box-sizing:border-box;cursor:pointer;";
+      `padding-left:${gw}px;`;
 
     // Gutter overlay container
     const gutter = document.createElement("div");
     gutter.className = "cm-stickyscroll-gutter";
     gutter.style.cssText =
-      `width:${gw}px;height:${lh}px;line-height:${lh}px;` +
-      "position:absolute;top:0;left:0;z-index:1;" +
-      "display:flex;align-items:stretch;box-sizing:border-box;user-select:none;" +
-      "background-color:inherit;" +
-      "background-image:inherit;" +
-      "border-right:1px solid var(--cm-stickyscroll-gutterBorder, rgba(128,128,128,0.18));";
+      `width:${gw}px;height:${lh}px;line-height:${lh}px;`;
 
     if (gm.columns.length === 0) {
       const linenum = document.createElement("span");
       linenum.className = "cm-stickyscroll-linenum";
       linenum.textContent = String(line.lineNumber);
-      linenum.style.cssText = "display:block;text-align:right;width:100%;white-space:nowrap;font:inherit;padding-right:4px;";
       gutter.appendChild(linenum);
     } else {
       gm.columns.forEach((colMetrics) => {
@@ -408,8 +396,6 @@ class StickyScrollPlugin {
           const el = document.createElement("div");
           el.className = "cm-gutterElement";
           el.textContent = String(line.lineNumber);
-          // We provide base flex styles so the number aligns correctly, but allow custom padding to apply via CSS.
-          el.style.cssText = "width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;";
           col.appendChild(el);
         }
         gutter.appendChild(col);
@@ -420,8 +406,7 @@ class StickyScrollPlugin {
     const code = renderLineCode(view, line, this.cache);
     code.className = "cm-stickyscroll-code";
     code.style.cssText =
-      "display:block;white-space:pre;padding:0 2px 0 6px;" +
-      (scrollX > 0 ? `transform:translateX(${-scrollX}px);` : "");
+      scrollX > 0 ? `transform:translateX(${-scrollX}px);` : "";
 
     row.appendChild(gutter);
     row.appendChild(code);
