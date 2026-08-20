@@ -30,7 +30,8 @@
 		"prepublishOnly": "npm run build",
 		"lint:ts": "tsc --noEmit && eslint --cache .",
 		"lint:md": "markdownlint-cli2 '**/*.md'",
-		"lint": "npm run lint:ts && npm run lint:md",
+		"lint:css": "stylelint --cache '**/*.css'",
+		"lint": "npm run lint:ts && npm run lint:css && npm run lint:md",
 		"build": "tsc && eslint --no-inline-config --no-config-lookup -c eslint.dist.js dist/*.js"
 	},
 	"peerDependencies": {
@@ -47,6 +48,7 @@
 		"@codemirror/view": "^6.43.8",
 		"eslint": "^10.8.1",
 		"markdownlint-cli2": "^0.23.2",
+		"stylelint": "^17.14.1",
 		"typescript": "^6.0.3"
 	}
 }
