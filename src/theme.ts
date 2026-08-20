@@ -22,72 +22,67 @@ export const stickyScrollBaseTheme = EditorView.baseTheme({
   // Container background fallback — JS overrides with exact editor color.
   ".cm-stickyscroll-container": {
     position: "absolute",
-    top: "0",
-    left: "0",
-    right: "0",
-    zIndex: "10",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     overflow: "hidden",
     boxSizing: "border-box",
-    pointerEvents: "none",
-    backgroundColor: "var(--cm-stickyscroll-bg, #ffffff)",
-    color: "inherit",
-    font: "inherit",
     fontFamily: "monospace",
-    tabSize: "4",
+    tabSize: 4,
+    borderBottom: "1px solid rgba(128,128,128,.2)",
+    boxShadow: "0 2px 4px var(--cm-stickyscroll-shadow)",
+  },
+
+  "&light .cm-stickyscroll-container": {
+    "--cm-stickyscroll-shadow": "rgba(0,0,0,.12)",
   },
 
   "&dark .cm-stickyscroll-container": {
-    backgroundColor: "var(--cm-stickyscroll-bg, #1e1e1e)",
-  },
-
-  // The inner wrapper and every row inherit the container's (opaque) background.
-  // This is what makes the VSCode slide-away work: when the innermost row slides
-  // up underneath the row above it, the row above is opaque and actually *hides*
-  // it — otherwise the sliding row's text would bleed through the outer rows.
-  ".cm-stickyscroll-inner": {
-    pointerEvents: "auto",
-    backgroundColor: "inherit",
+    "--cm-stickyscroll-shadow": "rgba(255,255,255,.12)",
   },
 
   ".cm-stickyscroll-line": {
-    display: "block",
     position: "relative",
     overflow: "hidden",
     whiteSpace: "pre",
     boxSizing: "border-box",
     cursor: "pointer",
-    backgroundColor: "inherit",
 
     // Current scope indicator (left accent bar — same as VSCode).
     "&.cm-stickyscroll-current": {
-      backgroundColor: "inherit",
-      backgroundImage: "linear-gradient(rgba(128,128,128,.07), rgba(128,128,128,.07))",
+      backgroundColor: "rgba(128,128,128,.07)",
       boxShadow: "inset 3px 0 0 #4b9edd",
     },
 
     "&:hover": {
-      backgroundImage: "linear-gradient(rgba(128,128,128,.09), rgba(128,128,128,.09))",
+      backgroundColor: "rgba(128,128,128,.09)",
     },
   },
 
   // Gutter cosmetics — position/size are inline from plugin.ts.
   ".cm-stickyscroll-gutter": {
     position: "absolute",
-    top: "0",
-    left: "0",
-    zIndex: "1",
+    top: 0,
+    insetInlineStart: 0,
+    zIndex: 1,
     display: "flex",
     alignItems: "stretch",
     boxSizing: "border-box",
     WebkitUserSelect: "none",
     userSelect: "none",
-    backgroundColor: "inherit",
-    backgroundImage: "inherit",
-    borderRight: "1px solid rgba(128,128,128,.18)",
-    color: "inherit",
-    opacity: ".55",
-    font: "inherit",
-    fontSize: "inherit",
+    borderInlineEnd: "1px solid rgba(128,128,128,.18)",
+    opacity: 0.55,
+
+    "&>.cm-gutter": {
+      flex: "none",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    "& .cm-lineNumbers": {
+      order: -1,
+    },
 
     // We provide base flex styles so the number aligns correctly, but allow custom padding to apply via CSS.
     "& .cm-gutterElement": {
@@ -99,18 +94,7 @@ export const stickyScrollBaseTheme = EditorView.baseTheme({
     },
   },
 
-  ".cm-stickyscroll-linenum": {
-    display: "block",
-    textAlign: "end",
-    width: "100%",
-    whiteSpace: "nowrap",
-    font: "inherit",
-    paddingRight: "4px",
-  },
-
   ".cm-stickyscroll-code": {
-    display: "block",
-    whiteSpace: "pre",
     padding: "0 2px 0 6px",
   },
 });

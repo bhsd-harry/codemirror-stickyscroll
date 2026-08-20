@@ -28,6 +28,10 @@ export default [
 				2,
 				2,
 			],
+			'@stylistic/indent-binary-ops': [
+				2,
+				2,
+			],
 			'@stylistic/lines-around-comment': 0,
 			'@stylistic/max-len': 0,
 			'@stylistic/member-delimiter-style': [

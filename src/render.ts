@@ -12,7 +12,7 @@ import type { StickyLine } from "./types";
 // ---------------------------------------------------------------------------
 
 /** Cache of rendered code elements keyed by opening line number. */
-export type RowCache = Map<number, { text: string; el: HTMLElement }>;
+export type RowCache = Map<number, { text: string; el: HTMLDivElement }>;
 
 // ---------------------------------------------------------------------------
 // Internal: consumer-theme-aware Highlighter
@@ -50,7 +50,7 @@ function findRenderedLineElement(view: EditorView, lineNumber: number): HTMLElem
   // (Block widgets, placeholder lines and render-margin lines make those two
   // lists diverge, which previously caused wrong — blank / comment / `}` —
   // line text to be cloned into the sticky bar.)
-  let dom: { node: Node; offset: number } | null = null;
+  let dom: { node: Node; offset: number };
   try {
     dom = view.domAtPos(lineFrom, 1);
   } catch {
@@ -63,31 +63,11 @@ function findRenderedLineElement(view: EditorView, lineNumber: number): HTMLElem
 }
 
 // ---------------------------------------------------------------------------
-// Internal: remove leading closing brace '}' for aesthetic VS Code parity
-// ---------------------------------------------------------------------------
-
-function removeLeadingClosingBrace(el: HTMLElement) {
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
-  let node: Node | null;
-  while (node = walker.nextNode()) {
-    const text = node.nodeValue || "";
-    if (text.trim() === "") continue;
-
-    const match = /^(\s*)\}\s*(?!\s)(.*)$/.exec(text);
-    if (match) {
-      node.nodeValue = match[1]! + match[2]!;
-      return;
-    }
-    break; // Hit a non-whitespace character that isn't '}'
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Public: renderLineCode
 // ---------------------------------------------------------------------------
 
 /**
- * Build (or return cached) a `<span class="cm-stickyscroll-code">` element
+ * Build (or return cached) a `<div class="cm-stickyscroll-code">` element
  * containing the syntax-highlighted code for one opening line (§4.4 / §4.6b).
  *
  * Priority:
@@ -104,13 +84,13 @@ export function renderLineCode(
   view: EditorView,
   line: StickyLine,
   cache: RowCache
-): HTMLElement {
+): HTMLDivElement {
   // Cache hit.
   const hit = cache.get(line.lineNumber);
   if (hit && hit.text === line.text) return hit.el;
 
-  const makeSpan = (child?: Node): HTMLElement => {
-    const s = document.createElement("span");
+  const makeSpan = (child?: Node): HTMLDivElement => {
+    const s = document.createElement("div");
     s.className = "cm-stickyscroll-code";
     if (child) s.appendChild(child);
     else s.textContent = line.text; // plain text, indentation preserved
@@ -126,7 +106,6 @@ export function renderLineCode(
       frag.appendChild(child.cloneNode(true));
     }
     const el = makeSpan(frag);
-    removeLeadingClosingBrace(el);
     cache.set(line.lineNumber, { text: line.text, el });
     return el;
   }
@@ -139,7 +118,7 @@ export function renderLineCode(
       const topType: NodeType = tree.type;
       const highlighters: readonly Highlighter[] = [new StateHighlighter(view.state, topType)];
 
-      const out = document.createElement("span");
+      const out = document.createElement("div");
       out.className = "cm-stickyscroll-code";
       let last = line.from;
 
@@ -179,7 +158,6 @@ export function renderLineCode(
 
       // Only cache when we produced actual content.
       if (out.childNodes.length > 0) {
-        removeLeadingClosingBrace(out);
         cache.set(line.lineNumber, { text: line.text, el: out });
         return out;
       }
@@ -190,7 +168,6 @@ export function renderLineCode(
 
   // ── Strategy 3: plain text ────────────────────────────────────────────────
   const el = makeSpan();
-  removeLeadingClosingBrace(el);
   cache.set(line.lineNumber, { text: line.text, el });
   return el;
 }

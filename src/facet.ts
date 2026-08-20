@@ -18,7 +18,7 @@ export interface StickyScrollOptions {
    * matching for other grammars. Override for fine-tuning, especially for
    * a specific non-JS/TS language.
    */
-  excludeNode?: (nodeName: string | undefined, langName: string | undefined, ownerName?: string) => boolean;
+  excludeNode?: (nodeName?: string, langName?: string, ownerName?: string) => boolean;
   /** Extra CSS class(es) applied to the sticky bar container. */
   class?: string;
 }
@@ -95,7 +95,7 @@ const DEFAULT_MAX_STICKY_LINES = 4;
 const DEFAULT_MIN_BLOCK_LINES = 6;
 
 /** Merge partial options with built-in defaults. */
-export function makeStickyScrollConfig(options: StickyScrollOptions | undefined): StickyScrollConfig {
+export function makeStickyScrollConfig(options?: StickyScrollOptions): StickyScrollConfig {
   return {
     maxStickyLines: options?.maxStickyLines ?? DEFAULT_MAX_STICKY_LINES,
     minBlockLines: options?.minBlockLines ?? DEFAULT_MIN_BLOCK_LINES,

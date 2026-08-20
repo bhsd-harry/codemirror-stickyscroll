@@ -96,14 +96,7 @@ import {
 ## Styling
 
 The bar is layout-only by default and always follows the **editor's own theme**
-(token colors, background). You can restyle it with CSS:
-
-```css
-.cm-stickyscroll-container {
-  /* bar background (auto-set from the editor theme; override if you like) */
-  --cm-stickyscroll-bg: #1e1e1e;
-}
-```
+(token colors, background). You can restyle it with CSS.
 
 Per-row hooks:
 

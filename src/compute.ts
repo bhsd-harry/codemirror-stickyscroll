@@ -64,7 +64,7 @@ export function getStickyContext(view: EditorView, config: StickyScrollConfig): 
   const maxDynamic = Math.max(1, Math.floor(view.scrollDOM.clientHeight * 0.4 / lineHeight));
   const maxSticky = Math.min(config.maxStickyLines, maxDynamic);
 
-  return getStickyContextForRange(state, topBlock.from, config, parseTree, maxSticky);
+  return getStickyContextForRange(view, topBlock.from, config, parseTree, maxSticky);
 }
 
 /**
@@ -74,17 +74,16 @@ export function getStickyContext(view: EditorView, config: StickyScrollConfig): 
  * already-extended tree (see `getStickyContext`) to compute against a parse
  * that is known to cover `fromPos`.
  */
-export function getStickyContextForRange(
-  state: EditorState,
+function getStickyContextForRange(
+  { state, viewport }: EditorView,
   fromPos: number,
   config: StickyScrollConfig,
-  tree?: Tree | null,
-  dynamicMax?: number
+  t: Tree,
+  maxSticky: number
 ): StickyLine[] {
   const lang = state.facet(language);
   if (!lang) return [];
 
-  const t = tree ?? syntaxTree(state);
   if (t.length === 0) return [];
 
   const doc = state.doc;
@@ -120,7 +119,7 @@ export function getStickyContextForRange(
               // comments, imports). `owner` may be a wrapper (e.g.
               // VariableDeclaration wrapping an ObjectExpression), so evaluate
               // against the foldable node's own type name.
-              const typeName = node.type.name;
+              const typeName = node.name;
               if (!exclude(typeName, langName, owner.name)) {
                 // A scope only counts as "over" once its full semantic end has
                 // passed, so measure from `owner.to` (e.g. the whole try/catch or
@@ -149,6 +148,7 @@ export function getStickyContextForRange(
   } else {
     for (let openLine = topLineNumber - 1; openLine > 0; openLine--) {
       const open = doc.line(openLine);
+      if (open.to < viewport.from) break;
       const ownerName = open.text.trim();
       if (!exclude(undefined, langName, ownerName)) {
         for (const service of services) {
@@ -182,6 +182,5 @@ export function getStickyContextForRange(
     if (!dedup.has(line.lineNumber)) dedup.set(line.lineNumber, line);
   }
 
-  const maxSticky = dynamicMax ?? config.maxStickyLines;
   return Array.from(dedup.values()).slice(0, maxSticky);
 }

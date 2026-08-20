@@ -9,29 +9,20 @@ import type { StickyLine } from "./types";
 // Utilities
 // ─────────────────────────────────────────────────────────────────────────────
 
-function isTransparent(bg: string): boolean {
-  if (!bg || bg === "transparent" || bg === "rgba(0, 0, 0, 0)") return true;
-  const m = /rgba?\(([^)]*)\)/.exec(bg);
-  if (m) {
-    const parts = m[1]!.split(",");
-    if (parts.length === 4 && parseFloat(parts[3]!.trim()) === 0) return true;
-  }
-  return false;
-}
-
 /**
  * Alpha channel of a computed `background-color`, or `null` when the color has
  * no alpha channel (hex / named / `rgb(...)` → fully opaque).
  */
-function alphaOf(bg: string): number | null {
+function alphaOf(bg: string): number {
+  if (!bg || bg === "transparent") return 0;
   const m = /rgba?\(([^)]*)\)/.exec(bg);
-  if (!m) return null;
+  if (!m) return 1;
   const parts = m[1]!.split(",");
   if (parts.length === 4) {
-    const a = parseFloat(parts[3]!.trim());
-    return Number.isNaN(a) ? null : a;
+    const a = parseFloat(parts[3]!);
+    return Number.isNaN(a) ? 1 : a;
   }
-  return null;
+  return 1;
 }
 
 interface GutterColumnMetrics {
@@ -83,8 +74,8 @@ function measureGutters(view: EditorView): GutterMetrics {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class StickyScrollPlugin {
-  private readonly dom: HTMLElement; // outer container — clips
-  private readonly inner: HTMLElement; // inner wrapper — holds the rows
+  private readonly dom: HTMLDivElement; // outer container — clips
+  private readonly inner: HTMLDivElement; // inner wrapper — holds the rows
   private readonly view: EditorView;
   private config: StickyScrollConfig;
 
@@ -94,10 +85,13 @@ class StickyScrollPlugin {
   private observer: ResizeObserver | null = null;
   private gutterObserver: ResizeObserver | null = null;
 
-  private lineHeight = 16;
   private gutterMetrics: GutterMetrics = { totalWidth: 0, columns: [] };
   private currentHeight = 0;
   private lastLineKey = "";
+
+  get lineHeight(): number {
+    return Math.round(this.view.defaultLineHeight) || 16;
+  }
 
   constructor(view: EditorView) {
     this.view = view;
@@ -119,12 +113,12 @@ class StickyScrollPlugin {
 
     view.scrollDOM.addEventListener("scroll", this.onScroll, { passive: true });
 
-    if (typeof ResizeObserver !== "undefined") {
-      this.observer = new ResizeObserver(() => this.request());
+    if (typeof ResizeObserver === "function") {
+      this.observer = new ResizeObserver(this.onScroll);
       this.observer.observe(view.dom);
       const gutterEl = view.dom.querySelector(".cm-gutters");
       if (gutterEl) {
-        this.gutterObserver = new ResizeObserver(() => this.request());
+        this.gutterObserver = new ResizeObserver(this.onScroll);
         this.gutterObserver.observe(gutterEl);
       }
     }
@@ -137,23 +131,21 @@ class StickyScrollPlugin {
       update.state.facet(stickyScrollFacet) !== update.startState.facet(stickyScrollFacet);
     this.config = update.state.facet(stickyScrollFacet);
 
-    if (
-      configChanged ||
+    const contentChanged = configChanged ||
       update.docChanged ||
-      syntaxTree(update.startState) !== syntaxTree(update.state)
-    ) {
+      syntaxTree(update.startState) !== syntaxTree(update.state);
+
+    if (contentChanged) {
       this.cache.clear();
       this.lastLineKey = "";
     }
 
     if (
-      configChanged ||
-      update.docChanged ||
+      contentChanged ||
       update.viewportChanged ||
       update.geometryChanged ||
       update.selectionSet ||
-      update.startState.facet(language) !== update.state.facet(language) ||
-      syntaxTree(update.startState) !== syntaxTree(update.state)
+      update.startState.facet(language) !== update.state.facet(language)
     ) {
       this.request();
     }
@@ -173,14 +165,12 @@ class StickyScrollPlugin {
   private request() {
     if (this.rafHandle !== null) return;
     this.rafHandle = requestAnimationFrame(() => {
-      this.rafHandle = null;
       try {
         this.render();
       } catch (e) {
-        if (typeof console !== "undefined") {
-          console.warn("[codemirror-stickyscroll]", e);
-        }
+        console.warn("[codemirror-stickyscroll]", e);
       }
+      this.rafHandle = null;
     });
   }
 
@@ -192,7 +182,6 @@ class StickyScrollPlugin {
     const view = this.view;
 
     // ── Measure ─────────────────────────────────────────────────────────────
-    this.lineHeight = Math.round(view.defaultLineHeight) || 16;
     this.gutterMetrics = measureGutters(view);
 
     // ── Background (match active theme) ─────────────────────────────────────
@@ -213,48 +202,25 @@ class StickyScrollPlugin {
       this.buildRows(lines);
     }
 
-    // ── VSCode/Monaco-style slide-away ───────────────────────────────────────
-    //
-    // `slideOffset` ∈ [0, lineHeight) is how far the innermost sticky line has
-    // been pushed up so far. It grows as the BOTTOM of the innermost scope's
-    // end line rises toward the viewport top. The bar height shrinks from the
-    // bottom and only the innermost row slides up (underneath the row above it,
-    // applied in updateRowAttrs) — outer rows stay pinned, exactly like VSCode.
-    //
-    // In VSCode terms: lastLineRelativePosition = −slideOffset, container height
-    // = totalHeight − slideOffset, innermost row top = (N−1)·lh − slideOffset.
     const lh = this.lineHeight;
     const totalLines = lines.length;
-    const totalHeight = totalLines * lh;
 
     // ── Apply layout math ────────────────────────────────────────────────────
-    //
-    // VSCode:
-    //   containerHeight = totalHeight − slideOffset   (clip from the bottom)
-    //   innermost row    pushed up by slideOffset, zIndex 0 (slides underneath)
-    //   outer rows       untouched, zIndex 1
     //
     // The container clips via overflow:hidden; we never translate the whole
     // stack — that would make the OUTERMOST line disappear first, unlike VSCode.
 
-    const containerHeight = Math.max(0, totalHeight);
+    const containerHeight = totalLines * lh;
     this.currentHeight = containerHeight;
 
     this.dom.style.height = `${containerHeight}px`;
     this.dom.style.display = "";
 
-    // Apply per-frame row attributes (gutter metrics, scrollLeft, highlight,
-    // and the innermost row's slide-away translate).
-    this.updateRowAttrs(lines, view.scrollDOM.scrollLeft, view.state.selection.main.head);
+    // Apply per-frame row attributes (gutter metrics, scrollLeft and highlight).
+    this.updateRowAttrs(lines);
     this.dom.dir = view.textDirection === Direction.RTL ? "rtl" : "ltr";
 
-    // Add border + shadow ONLY when bar has content.
-    this.dom.style.borderBottom =
-      containerHeight > 0
-        ? "1px solid rgba(128,128,128,.2)"
-        : "";
-    this.dom.style.boxShadow =
-      containerHeight > 0 ? "0 2px 8px rgba(0,0,0,.12)" : "";
+    this.inner.style.lineHeight = `${lh}px`;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -262,10 +228,7 @@ class StickyScrollPlugin {
   // ─────────────────────────────────────────────────────────────────────────
 
   private hide() {
-    this.dom.style.height = "0px";
     this.dom.style.display = "none";
-    this.dom.style.borderBottom = "";
-    this.dom.style.boxShadow = "";
     this.currentHeight = 0;
     // Do NOT clear this.inner — keep rows for fast reuse on next show.
   }
@@ -275,64 +238,41 @@ class StickyScrollPlugin {
    * We clear the inner wrapper and build fresh — no stale DOM element issues.
    */
   private buildRows(lines: StickyLine[]) {
-    const view = this.view;
-    const lh = this.lineHeight;
-    const gm = this.gutterMetrics;
-    const scrollX = view.scrollDOM.scrollLeft;
-    const head = view.state.selection.main.head;
-
     this.inner.textContent = ""; // Remove all children cleanly
 
     for (const line of lines) {
-      this.inner.appendChild(this.makeRow(view, line, lh, gm, scrollX, head));
+      this.inner.appendChild(this.makeRow(line));
     }
   }
 
   /**
    * Update per-frame attributes WITHOUT rebuilding DOM.
    * Called every frame when the line-set is unchanged.
-   *
-   * `slideOffset` drives the VSCode slide-away: the innermost row is pushed up
-   * by `slideOffset` px underneath the outer rows (zIndex 0 < zIndex 1) while
-   * the container height shrinks from the bottom.
    */
   private updateRowAttrs(
     lines: StickyLine[],
-    scrollX: number,
-    head: number,
   ) {
-    const lh = this.lineHeight;
     const gm = this.gutterMetrics;
     const rowEls = this.inner.children;
 
     for (let i = 0; i < lines.length && i < rowEls.length; i++) {
       const line = lines[i]!;
-      const row = rowEls[i] as HTMLElement;
+      const row = rowEls[i] as HTMLDivElement;
 
-      row.style.height = `${lh}px`;
-      row.style.lineHeight = `${lh}px`;
-      row.style.paddingLeft = `${gm.totalWidth}px`;
-      row.classList.toggle(
-        "cm-stickyscroll-current",
-        head >= line.nodeFrom && head <= line.nodeTo
-      );
+      this.setHeight(row);
+      this.setClass(row, line);
 
-      const gutter = row.firstElementChild as HTMLElement | null;
-      if (gutter) {
-        gutter.style.width = `${gm.totalWidth}px`;
-        gutter.style.height = `${lh}px`;
-        gutter.style.lineHeight = `${lh}px`;
+      const gutter = row.firstElementChild as HTMLDivElement;
+      this.setWidth(row, gutter);
+      this.setHeight(gutter);
 
-        const cols = gutter.children;
-        for (let c = 0; c < gm.columns.length && c < cols.length; c++) {
-          (cols[c] as HTMLElement).style.width = `${gm.columns[c]!.width}px`;
-        }
+      const cols = gutter.children;
+      for (let c = 0; c < gm.columns.length && c < cols.length; c++) {
+        (cols[c] as HTMLDivElement).style.width = `${gm.columns[c]!.width}px`;
       }
 
-      const code = row.lastElementChild as HTMLElement | null;
-      if (code) {
-        code.style.transform = scrollX > 0 ? `translateX(${-scrollX}px)` : "";
-      }
+      const code = row.lastElementChild as HTMLDivElement;
+      this.setTransform(code);
     }
   }
 
@@ -341,55 +281,34 @@ class StickyScrollPlugin {
    *
    * The gutter overlay mirrors the real editor gutter column-by-column:
    *   .cm-stickyscroll-gutter  (position:absolute, width = total gutter width)
-   *     column[0]  ← mirrors .cm-lineNumbers  (shows the line number, right-aligned)
-   *     column[1]  ← mirrors .cm-foldGutter   (blank spacer, same width)
-   *     column[N]  ← any additional gutter columns
-   *
-   * This makes the sticky line number align perfectly with the editor's own
-   * line numbers, regardless of which gutter extensions are active.
    */
   private makeRow(
-    view: EditorView,
     line: StickyLine,
-    lh: number,
-    gm: GutterMetrics,
-    scrollX: number,
-    head: number
-  ): HTMLElement {
-    const gw = gm.totalWidth;
+  ): HTMLDivElement {
+    const view = this.view;
+    const gm = this.gutterMetrics;
 
     // Row
     const row = document.createElement("div");
     row.className = "cm-stickyscroll-line";
-    if (head >= line.nodeFrom && head <= line.nodeTo) {
-      row.classList.add("cm-stickyscroll-current");
-    }
+    this.setClass(row, line);
     row.setAttribute("role", "button");
     row.setAttribute("tabindex", "0");
-    row.title = line.text;
     row.setAttribute("aria-label", `Go to line ${line.lineNumber}`);
-    row.style.cssText =
-      `height:${lh}px;` +
-      `line-height:${lh}px;` +
-      `padding-left:${gw}px;`;
+    this.setHeight(row);
 
     // Gutter overlay container
     const gutter = document.createElement("div");
     gutter.className = "cm-stickyscroll-gutter";
-    gutter.style.cssText =
-      `width:${gw}px;height:${lh}px;line-height:${lh}px;`;
+    this.setWidth(row, gutter);
+    this.setHeight(gutter);
 
-    if (gm.columns.length === 0) {
-      const linenum = document.createElement("span");
-      linenum.className = "cm-stickyscroll-linenum";
-      linenum.textContent = String(line.lineNumber);
-      gutter.appendChild(linenum);
-    } else {
+    if (gm.columns.length) {
       gm.columns.forEach((colMetrics) => {
         const col = document.createElement("div");
         // Reuse the exact same classes so any custom user CSS (like Notron's .cm-lineNumbers .cm-gutterElement) matches!
         col.className = colMetrics.className;
-        col.style.cssText = `width:${colMetrics.width}px;flex:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center;`;
+        col.style.width = `${colMetrics.width}px`;
 
         if (colMetrics.className.includes("cm-lineNumbers")) {
           // Wrap in cm-gutterElement to perfectly match the DOM structure of CM6's line numbers.
@@ -404,9 +323,7 @@ class StickyScrollPlugin {
 
     // Code span
     const code = renderLineCode(view, line, this.cache);
-    code.className = "cm-stickyscroll-code";
-    code.style.cssText =
-      scrollX > 0 ? `transform:translateX(${-scrollX}px);` : "";
+    this.setTransform(code);
 
     row.appendChild(gutter);
     row.appendChild(code);
@@ -432,6 +349,30 @@ class StickyScrollPlugin {
     return row;
   }
 
+  setClass(row: HTMLDivElement, line: StickyLine) {
+    const head = this.view.state.selection.main.head;
+    row.classList.toggle(
+      "cm-stickyscroll-current",
+      head >= line.nodeFrom && head <= line.nodeTo
+    );
+  }
+
+  setWidth(row: HTMLDivElement, gutter: HTMLDivElement) {
+    const gw = this.gutterMetrics.totalWidth;
+    row.style.paddingInlineStart = `${gw}px`;
+    gutter.style.width = `${gw}px`;
+  }
+
+  setHeight(ele: HTMLDivElement) {
+    const lh = this.lineHeight;
+    ele.style.height = `${lh}px`;
+  }
+
+  setTransform(code: HTMLDivElement) {
+    const scrollX = this.view.scrollDOM.scrollLeft;
+    code.style.transform = scrollX > 0 ? `translateX(${-scrollX}px)` : "";
+  }
+
   /**
    * Resolve the sticky bar's background to a GUARANTEED-opaque color that
    * matches the editor's effective backdrop.
@@ -439,8 +380,7 @@ class StickyScrollPlugin {
    *   1. Walk the real ancestor chain (contentDOM → … → <html>) and return the
    *      first opaque color, skipping fully transparent AND semi-transparent
    *      layers (a semi-transparent ancestor is only used as a last resort).
-   *   2. Fall back to the consumer's `--cm-stickyscroll-bg` custom property.
-   *   3. Fall back to a dark/light hex default.
+   *   2. Fall back to a dark/light hex default.
    *
    * This makes it impossible for the sticky bar to end up see-through, exactly
    * like Monaco's sticky widget which always paints a solid background.
@@ -449,25 +389,8 @@ class StickyScrollPlugin {
     const detected = this.detectBg();
     if (detected) return detected;
 
-    const varBg = this.resolveVarBg();
-    if (varBg) return varBg;
-
     const isDark = this.view.dom.classList.contains("cm-dark");
-    return isDark ? "#1e1e1e" : "#ffffff";
-  }
-
-  /**
-   * Read the consumer-defined `--cm-stickyscroll-bg` if present (else null).
-   * Read straight from the container's computed style — no throwaway DOM.
-   */
-  private resolveVarBg(): string | null {
-    try {
-      const raw = getComputedStyle(this.dom).getPropertyValue("--cm-stickyscroll-bg").trim();
-      if (!raw || isTransparent(raw)) return null;
-      return raw;
-    } catch {
-      return null;
-    }
+    return isDark ? "#1e1e1e" : "#fff";
   }
 
   private detectBg(): string | null {
@@ -475,9 +398,9 @@ class StickyScrollPlugin {
     let el: HTMLElement | null = this.view.contentDOM;
     while (el) {
       const bg = getComputedStyle(el).backgroundColor;
-      if (!isTransparent(bg)) {
-        const alpha = alphaOf(bg);
-        if (alpha === null || alpha >= 1) return bg;
+      const alpha = alphaOf(bg);
+      if (alpha > 0) {
+        if (alpha >= 1) return bg;
         semiTransparent = semiTransparent || bg;
       }
       el = el.parentElement;
