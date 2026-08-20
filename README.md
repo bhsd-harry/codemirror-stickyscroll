@@ -17,8 +17,6 @@ extension** (no fork of `@codemirror/*`).
 
 - **Per-pixel updates** — a native `scroll` listener + `requestAnimationFrame`
   throttle keeps the bar glued to the scroll position; no "jumpy" updates.
-- **Slide-away effect** — the innermost pinned line is pushed out gradually as
-  its own closing line approaches the top of the viewport (Monaco behavior).
 - **Click-to-jump with margin compensation** — clicking a sticky line scrolls
   the target line to the top *plus* the current bar height, so the line you
   jump to is never hidden behind the bar. Keyboard (`Enter`/`Space`) + `role="button"` for a11y.
@@ -121,9 +119,6 @@ Per-row hooks:
    (`position: absolute; top: 0` inside `view.dom`), updated per-frame from the
    native `scroll` event; line numbers align with the real gutter; token colors
    come from the consumer's active highlighters.
-5. **Slide-away** — when the innermost pinned block's closing line reaches the
-   top, the bar's height shrinks and the innermost row(s) translate up & fade
-   instead of disappearing abruptly.
 
 The DOM overlay (rather than the Panel API / `showPanel`) is what makes the bar
 behave like Monaco: it never pushes the content down (no reflow) and it can be

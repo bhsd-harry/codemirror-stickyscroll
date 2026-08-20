@@ -73,25 +73,6 @@ export const stickyScrollBaseTheme = EditorView.baseTheme({
     userSelect: "none",
     borderInlineEnd: "1px solid rgba(128,128,128,.18)",
     opacity: 0.55,
-
-    "&>.cm-gutter": {
-      flex: "none",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    "& .cm-lineNumbers": {
-      order: -1,
-    },
-
-    // We provide base flex styles so the number aligns correctly, but allow custom padding to apply via CSS.
-    "& .cm-gutterElement": {
-      width: "100%",
-      boxSizing: "border-box",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-    },
   },
 
   ".cm-stickyscroll-code": {

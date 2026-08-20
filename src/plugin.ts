@@ -84,6 +84,7 @@ class StickyScrollPlugin {
   private rafHandle: number | null = null;
   private observer: ResizeObserver | null = null;
   private gutterObserver: ResizeObserver | null = null;
+  private gutterMutationObserver: MutationObserver | null = null;
 
   private gutterMetrics: GutterMetrics = { totalWidth: 0, columns: [] };
   private currentHeight = 0;
@@ -113,17 +114,26 @@ class StickyScrollPlugin {
 
     view.scrollDOM.addEventListener("scroll", this.onScroll, { passive: true });
 
-    if (typeof ResizeObserver === "function") {
-      this.observer = new ResizeObserver(this.onScroll);
-      this.observer.observe(view.dom);
-      const gutterEl = view.dom.querySelector(".cm-gutters");
-      if (gutterEl) {
-        this.gutterObserver = new ResizeObserver(this.onScroll);
-        this.gutterObserver.observe(gutterEl);
-      }
+    this.observer = new ResizeObserver(this.onScroll);
+    this.observer.observe(view.dom);
+    const gutterEl = view.dom.querySelector(".cm-gutters");
+    if (gutterEl) {
+      this.gutterObserver = new ResizeObserver(this.onScroll);
+      this.gutterObserver.observe(gutterEl);
+
+      this.gutterMutationObserver = new MutationObserver(() => {
+        this.clearCache();
+        this.request();
+      });
+      this.gutterMutationObserver.observe(gutterEl, { childList: true });
     }
 
     this.request();
+  }
+
+  clearCache() {
+    this.cache.clear();
+    this.lastLineKey = "";
   }
 
   update(update: ViewUpdate) {
@@ -136,8 +146,7 @@ class StickyScrollPlugin {
       syntaxTree(update.startState) !== syntaxTree(update.state);
 
     if (contentChanged) {
-      this.cache.clear();
-      this.lastLineKey = "";
+      this.clearCache();
     }
 
     if (
