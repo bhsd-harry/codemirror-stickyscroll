@@ -2,10 +2,6 @@
 
 > VS Code / Monaco-style **sticky scroll** (sticky lines) for [CodeMirror 6](https://codemirror.net/).
 
-<p align="center">
-  <img src="preview/image.png" alt="Sticky Scroll Preview" width="750" />
-</p>
-
 This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazel-studio/codemirror-stickyscroll).
 
 Sticky lines keep the *opening* lines of the enclosing scopes (function, class,
