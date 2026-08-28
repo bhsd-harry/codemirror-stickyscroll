@@ -45,11 +45,9 @@ has a working CodeMirror 6 editor):
 
 | Package | Minimum |
 | --- | --- |
-| `@codemirror/view` | ^6.0.0 |
+| `@codemirror/view` | ^6.3.0 |
 | `@codemirror/state` | ^6.0.0 |
 | `@codemirror/language` | ^6.0.0 |
-| `@lezer/common` | ^1.0.0 |
-| `@lezer/highlight` | ^1.0.0 |
 
 ## API
 
@@ -68,10 +66,6 @@ interface StickyScrollOptions {
    * languages, while automatically bypassing the literal denylist for JSON.
    */
   excludeNode?: (nodeName: string, langName: string | undefined) => boolean;
-  /** Extra HighlightStyle merged in when a line is re-highlighted from scratch. */
-  highlightStyle?: HighlightStyle;
-  /** Called after a sticky line is clicked (after the jump is dispatched). */
-  onLineClick?: (lineNumber: number) => void;
   /** Extra CSS class(es) for the bar container. */
   class?: string;
 }
@@ -105,7 +99,7 @@ Per-row hooks:
 | `.cm-stickyscroll-line:hover` | hover highlight |
 | `.cm-stickyscroll-line.cm-stickyscroll-current` | block containing the cursor |
 | `.cm-stickyscroll-gutter` | line-number cell |
-| `.cm-stickyscroll-text` | code column (horizontally synced) |
+| `.cm-stickyscroll-code` | code column (horizontally synced) |
 
 ## How it works
 
