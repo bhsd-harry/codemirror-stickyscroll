@@ -2,7 +2,7 @@
 
 > VS Code / Monaco-style **sticky scroll** (sticky lines) for [CodeMirror 6](https://codemirror.net/).
 
-This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazel-studio/codemirror-stickyscroll).
+This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazel-studio/codemirror-stickyscroll) that adds support for [foldService](https://codemirror.net/docs/ref/#language.foldService), which makes it compatible with legacy [StreamParser](https://codemirror.net/docs/ref/#language.StreamParser) languages that register folding.
 
 Sticky lines keep the *opening* lines of the enclosing scopes (function, class,
 if/loop blocks, …) pinned at the top of the editor while you scroll — exactly
@@ -20,7 +20,7 @@ extension** (no fork of `@codemirror/*`).
   *active* highlight styles of the editor (`highlightingFor`), or clones the
   already-rendered DOM line when available. The package **never** registers its
   own `syntaxHighlighting(...)`.
-- **Language-agnostic** — detection is based on `foldable()` from
+- **Language-agnostic** — detection is based on `foldNodeProp` or `foldService` from
   `@codemirror/language` (the fold services / fold node props that every
   `@codemirror/lang-*` already registers). It includes a smart, generic denylist
   that works across multiple languages (JS/TS, Python, Rust, Go, etc.) out of the box,
@@ -53,7 +53,7 @@ has a working CodeMirror 6 editor):
 interface StickyScrollOptions {
   /** Maximum sticky lines shown at once (dynamically clamped to ~40% of editor height). Default: 4 */
   maxStickyLines?: number;
-  /** Minimum lines a scope must span to become sticky. Default: 2 */
+  /** Minimum lines a scope must span to become sticky. Default: 6 */
   minBlockLines?: number;
   /**
    * Denylist predicate: return true to never pin a foldable node of that type.
@@ -61,7 +61,7 @@ interface StickyScrollOptions {
    * It uses exact node names for JS/TS and generic regex patterns for other
    * languages, while automatically bypassing the literal denylist for JSON.
    */
-  excludeNode?: (nodeName: string, langName: string | undefined) => boolean;
+  excludeNode?: (nodeName?: string, langName?: string, ownerName?: string) => boolean;
   /** Extra CSS class(es) for the bar container. */
   class?: string;
 }
@@ -99,11 +99,10 @@ Per-row hooks:
 
 ## How it works
 
-1. **Detect the top line** — `view.lineBlockAtHeight(scrollTop - documentTop)`.
+1. **Detect the top line** — `view.lineBlockAtHeight(clientTop - documentTop)`.
 2. **Walk the syntax tree** — from `syntaxTree(state).resolveInner(topPos, 0)`
    up through `node.parent`.
-3. **A scope qualifies when** its opening line is *foldable*
-   (`foldable(state, line.from, line.to)` from `@codemirror/language`), its fold
+3. **A scope qualifies when** its opening line is *foldable*, its fold
    anchor node is not denylisted, and it spans ≥ `minBlockLines`.
 4. **Render** — a `ViewPlugin` owns an absolutely-positioned overlay
    (`position: absolute; top: 0` inside `view.dom`), updated per-frame from the

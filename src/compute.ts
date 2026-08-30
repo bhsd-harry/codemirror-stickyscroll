@@ -15,6 +15,12 @@ import type { StickyLine } from "./types";
 const PARSE_TIMEOUT = 25;
 
 /**
+ * Maximum number of lines to scan for foldable blocks when any fold service is
+ * registered.
+ */
+const MAX_SERVICE_SCAN_LINES = 100;
+
+/**
  * Return the best syntax tree we can answer a query at `pos` with right now.
  *
  * When the committed tree already covers `pos`, it is used directly (cheap).
@@ -64,7 +70,7 @@ export function getStickyContext(view: EditorView, config: StickyScrollConfig): 
   const maxDynamic = Math.max(1, Math.floor(view.scrollDOM.clientHeight * 0.4 / lineHeight));
   const maxSticky = Math.min(config.maxStickyLines, maxDynamic);
 
-  return getStickyContextForRange(view, topBlock.from, config, parseTree, maxSticky);
+  return getStickyContextForRange(state, topBlock.from, config, parseTree, maxSticky);
 }
 
 /**
@@ -75,7 +81,7 @@ export function getStickyContext(view: EditorView, config: StickyScrollConfig): 
  * that is known to cover `fromPos`.
  */
 function getStickyContextForRange(
-  { state, viewport }: EditorView,
+  state: EditorState,
   fromPos: number,
   config: StickyScrollConfig,
   t: Tree,
@@ -146,9 +152,9 @@ function getStickyContextForRange(
       node = node.parent;
     }
   } else {
-    for (let openLine = topLineNumber - 1; openLine > 0; openLine--) {
+    const minLineNumber = Math.max(0, topLineNumber - MAX_SERVICE_SCAN_LINES);
+    for (let openLine = topLineNumber - 1; openLine > minLineNumber; openLine--) {
       const open = doc.line(openLine);
-      if (open.to < viewport.from) break;
       const ownerName = open.text.trim();
       if (!exclude(undefined, langName, ownerName)) {
         for (const service of services) {
