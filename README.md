@@ -2,7 +2,7 @@
 
 > VS Code / Monaco-style **sticky scroll** (sticky lines) for [CodeMirror 6](https://codemirror.net/).
 
-This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazel-studio/codemirror-stickyscroll) that adds support for [foldService](https://codemirror.net/docs/ref/#language.foldService), which makes it compatible with legacy [StreamParser](https://codemirror.net/docs/ref/#language.StreamParser) languages that register folding.
+This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazelstudio/codemirror-stickyscroll) that adds support for [foldService](https://codemirror.net/docs/ref/#language.foldService), which makes it compatible with legacy [StreamParser](https://codemirror.net/docs/ref/#language.StreamParser) languages that register folding.
 
 Sticky lines keep the *opening* lines of the enclosing scopes (function, class,
 if/loop blocks, …) pinned at the top of the editor while you scroll — exactly

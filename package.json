@@ -1,6 +1,6 @@
 {
 	"name": "@bhsd/codemirror-stickyscroll",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "VS Code / Monaco-style sticky scroll (sticky lines) extension for CodeMirror 6",
 	"keywords": [
 		"codemirror",
@@ -44,9 +44,9 @@
 		"@codemirror/language": "^6.12.4",
 		"@codemirror/state": "^6.7.1",
 		"@codemirror/view": "^6.43.9",
-		"eslint": "^10.9.1",
+		"eslint": "^10.10.0",
 		"markdownlint-cli2": "^0.23.2",
-		"stylelint": "^17.14.1",
+		"stylelint": "^17.15.0",
 		"typescript": "^6.0.3"
 	}
 }
