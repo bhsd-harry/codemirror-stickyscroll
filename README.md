@@ -2,7 +2,10 @@
 
 > VS Code / Monaco-style **sticky scroll** (sticky lines) for [CodeMirror 6](https://codemirror.net/).
 
-This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazelstudio/codemirror-stickyscroll) that adds support for [foldService](https://codemirror.net/docs/ref/#language.foldService), which makes it compatible with legacy [StreamParser](https://codemirror.net/docs/ref/#language.StreamParser) languages that register folding.
+This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazelstudio/codemirror-stickyscroll)
+that adds support for [foldService](https://codemirror.net/docs/ref/#language.foldService),
+which makes it compatible with legacy [StreamParser](https://codemirror.net/docs/ref/#language.StreamParser)
+languages that register folding.
 
 Sticky lines keep the *opening* lines of the enclosing scopes (function, class,
 if/loop blocks, …) pinned at the top of the editor while you scroll — exactly
@@ -15,16 +18,17 @@ extension** (no fork of `@codemirror/*`).
   throttle keeps the bar glued to the scroll position; no "jumpy" updates.
 - **Click-to-jump with margin compensation** — clicking a sticky line scrolls
   the target line to the top *plus* the current bar height, so the line you
-  jump to is never hidden behind the bar. Keyboard (`Enter`/`Space`) + `role="button"` for a11y.
+  jump to is never hidden behind the bar. Keyboard (`Enter`/`Space`) +
+  `role="button"` for a11y.
 - **Reuses the consumer's theme** — the bar re-highlights lines through the
   *active* highlight styles of the editor (`highlightingFor`), or clones the
   already-rendered DOM line when available. The package **never** registers its
   own `syntaxHighlighting(...)`.
-- **Language-agnostic** — detection is based on `foldNodeProp` or `foldService` from
-  `@codemirror/language` (the fold services / fold node props that every
+- **Language-agnostic** — detection is based on `foldNodeProp` or `foldService`
+  from `@codemirror/language` (the fold services / fold node props that every
   `@codemirror/lang-*` already registers). It includes a smart, generic denylist
-  that works across multiple languages (JS/TS, Python, Rust, Go, etc.) out of the box,
-  and gracefully handles data languages like JSON.
+  that works across multiple languages (JS/TS, Python, Rust, Go, etc.) out of
+  the box, and gracefully handles data languages like JSON.
 - **Gutter alignment, horizontal sync, RTL, resize-proof** — line numbers are
   aligned with the real gutter (width tracked via `ResizeObserver`), the bar
   follows horizontal scroll, and it reacts to font/zoom/resize changes.
