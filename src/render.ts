@@ -28,10 +28,6 @@ class StateHighlighter implements Highlighter {
   style(tags: readonly Tag[]): string | null {
     return highlightingFor(this.state, tags, this.topNodeType);
   }
-
-  scope(): boolean {
-    return true;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -50,12 +46,7 @@ function findRenderedLineElement(view: EditorView, lineNumber: number): HTMLElem
   // (Block widgets, placeholder lines and render-margin lines make those two
   // lists diverge, which previously caused wrong — blank / comment / `}` —
   // line text to be cloned into the sticky bar.)
-  let dom: { node: Node; offset: number };
-  try {
-    dom = view.domAtPos(lineFrom, 1);
-  } catch {
-    return null;
-  }
+  const dom = view.domAtPos(lineFrom, 1);
 
   let el = dom.node instanceof HTMLElement ? dom.node : dom.node.parentElement;
   while (el && !el.classList.contains("cm-line")) el = el.parentElement;

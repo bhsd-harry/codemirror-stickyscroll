@@ -159,20 +159,21 @@ function getStickyContextForRange(
       if (!exclude(undefined, langName, ownerName)) {
         for (const service of services) {
           const foldRange = service(state, open.from, open.to);
-          if (foldRange) {
-            const nodeTo = Math.min(foldRange.to, doc.length);
-            const close = doc.lineAt(nodeTo);
-            const closeLine = close.number;
-            if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
-              found.push({
-                lineNumber: openLine,
-                from: open.from,
-                to: open.to,
-                text: open.text,
-                nodeFrom: foldRange.from,
-                nodeTo,
-              });
-            }
+          if (!foldRange) {
+            continue;
+          }
+          const nodeTo = Math.min(foldRange.to, doc.length);
+          const close = doc.lineAt(nodeTo);
+          const closeLine = close.number;
+          if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
+            found.push({
+              lineNumber: openLine,
+              from: open.from,
+              to: open.to,
+              text: open.text,
+              nodeFrom: foldRange.from,
+              nodeTo,
+            });
           }
         }
       }

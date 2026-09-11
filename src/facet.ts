@@ -95,7 +95,7 @@ const DEFAULT_MAX_STICKY_LINES = 4;
 const DEFAULT_MIN_BLOCK_LINES = 6;
 
 /** Merge partial options with built-in defaults. */
-export function makeStickyScrollConfig(options?: StickyScrollOptions): StickyScrollConfig {
+function makeStickyScrollConfig(options?: StickyScrollOptions): StickyScrollConfig {
   return {
     maxStickyLines: options?.maxStickyLines ?? DEFAULT_MAX_STICKY_LINES,
     minBlockLines: options?.minBlockLines ?? DEFAULT_MIN_BLOCK_LINES,

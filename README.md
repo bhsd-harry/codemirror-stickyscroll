@@ -5,7 +5,7 @@
 This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazelstudio/codemirror-stickyscroll)
 that adds support for [foldService](https://codemirror.net/docs/ref/#language.foldService),
 which makes it compatible with legacy [StreamParser](https://codemirror.net/docs/ref/#language.StreamParser)
-languages that register folding.
+languages that register folding. This personal fork also removes some unused features.
 
 Sticky lines keep the *opening* lines of the enclosing scopes (function, class,
 if/loop blocks, …) pinned at the top of the editor while you scroll — exactly
@@ -76,12 +76,8 @@ interface StickyScrollOptions {
 ```ts
 import {
   stickyScroll,
-  stickyScrollFacet,        // the configuration Facet (compose/override per instance)
   defaultExcludeNode,       // default denylist implementation
-  makeStickyScrollConfig,   // merge options with defaults
-  stickyScrollBaseTheme,    // layout-only base theme (no token colors)
   type StickyScrollOptions,
-  type StickyLine,
 } from "@bhsd/codemirror-stickyscroll";
 ```
 
