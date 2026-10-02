@@ -53,24 +53,6 @@
 	user-select: none;
 	border-inline-end: 1px solid rgb(128, 128, 128, .18);
 	opacity: .55;
-
-	& > .cm-gutter {
-		flex: none;
-		align-items: center;
-		justify-content: center;
-	}
-
-	& .cm-lineNumbers {
-		order: -1;
-	}
-
-	& .cm-gutterElement {
-		width: 100%;
-		box-sizing: border-box;
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-	}
 }
 
 .cm-stickyscroll-code {
