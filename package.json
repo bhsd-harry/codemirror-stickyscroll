@@ -32,7 +32,8 @@
 		"lint:md": "markdownlint-cli2 '**/*.md'",
 		"lint:css": "stylelint --cache '**/*.css'",
 		"lint": "npm run lint:ts && npm run lint:css && npm run lint:md",
-		"build": "tsc && eslint --no-inline-config --no-config-lookup -c eslint.dist.js dist/*.js"
+		"build": "tsc && eslint --no-inline-config --no-config-lookup -c eslint.dist.js dist/*.js",
+		"test": "echo 'This package has no tests.'"
 	},
 	"peerDependencies": {
 		"@codemirror/language": "^6.3.0",
@@ -44,7 +45,7 @@
 		"@codemirror/language": "^6.12.4",
 		"@codemirror/state": "^6.7.6",
 		"@codemirror/view": "^6.43.13",
-		"eslint": "^10.11.0",
+		"eslint": "^10.12.0",
 		"markdownlint-cli2": "^0.23.3",
 		"stylelint": "^17.16.0",
 		"typescript": "^6.0.3"
