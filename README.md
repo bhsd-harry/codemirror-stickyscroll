@@ -1,5 +1,9 @@
 # @bhsd/codemirror-stickyscroll
 
+[![npm version](https://badge.fury.io/js/@bhsd%2Fcodemirror-stickyscroll.svg)](https://www.npmjs.com/package/@bhsd/codemirror-stickyscroll)
+[![CodeQL](https://github.com/bhsd-harry/codemirror-stickyscroll/actions/workflows/codeql.yml/badge.svg)](https://github.com/bhsd-harry/codemirror-stickyscroll/actions/workflows/codeql.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ec0da98ffbad4aad89f358a798868b33)](https://app.codacy.com/gh/bhsd-harry/codemirror-stickyscroll/dashboard)
+
 > VS Code / Monaco-style **sticky scroll** (sticky lines) for [CodeMirror 6](https://codemirror.net/).
 
 This is a fork of [@fazelstudio/codemirror-stickyscroll](https://github.com/fazelstudio/codemirror-stickyscroll)

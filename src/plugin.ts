@@ -1,9 +1,9 @@
 import { language, syntaxTree } from "@codemirror/language";
 import { Direction, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { StateEffect } from "@codemirror/state";
-import { getStickyContext } from "./compute";
-import { stickyScrollFacet, type StickyScrollConfig } from "./facet";
-import { renderLineCode, type RowCache } from "./render";
+import { getStickyContext } from "./compute.js";
+import { stickyScrollFacet, type StickyScrollConfig } from "./facet.js";
+import { renderLineCode, type RowCache } from "./render.js";
 import type { StickyLine } from "./types";
 
 export const stickyScrollEffect = StateEffect.define<true>();

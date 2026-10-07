@@ -1,4 +1,12 @@
 <!-- markdownlint-disable first-line-h1 line-length -->
+## 0.3.1
+
+*2026-10-16*
+
+**Fixed**
+
+- Add `.js` extensions to local file import statements for Node.js ESM compatibility
+
 ## 0.3.0
 
 *2026-10-07*

@@ -1,11 +1,11 @@
 import type { Extension } from "@codemirror/state";
-import { stickyScrollFacet, type StickyScrollOptions } from "./facet";
-import { scrollStickyPlugin } from "./plugin";
-import { stickyScrollBaseTheme } from "./theme";
+import { stickyScrollFacet, type StickyScrollOptions } from "./facet.js";
+import { scrollStickyPlugin } from "./plugin.js";
+import { stickyScrollBaseTheme } from "./theme.js";
 
 export type { StickyScrollOptions } from "./facet";
-export { defaultExcludeNode } from "./facet";
-export { stickyScrollEffect } from "./plugin";
+export { defaultExcludeNode } from "./facet.js";
+export { stickyScrollEffect } from "./plugin.js";
 
 /**
  * Add Monaco/VS Code-style sticky scroll to a CodeMirror 6 editor.
