@@ -77,6 +77,7 @@ interface StickyScrollOptions {
 import {
   stickyScroll,
   defaultExcludeNode,       // default denylist implementation
+  stickyScrollEffect,       // StateEffect to trigger a re-render (e.g. after theme change)
   type StickyScrollOptions,
 } from "@bhsd/codemirror-stickyscroll";
 ```

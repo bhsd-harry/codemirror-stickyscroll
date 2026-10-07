@@ -1,9 +1,12 @@
 import { language, syntaxTree } from "@codemirror/language";
 import { Direction, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
+import { StateEffect } from "@codemirror/state";
 import { getStickyContext } from "./compute";
 import { stickyScrollFacet, type StickyScrollConfig } from "./facet";
 import { renderLineCode, type RowCache } from "./render";
 import type { StickyLine } from "./types";
+
+export const stickyScrollEffect = StateEffect.define<true>();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Utilities
@@ -143,7 +146,8 @@ class StickyScrollPlugin {
 
     const contentChanged = configChanged ||
       update.docChanged ||
-      syntaxTree(update.startState) !== syntaxTree(update.state);
+      syntaxTree(update.startState) !== syntaxTree(update.state) ||
+      update.transactions.some(({ effects }) => effects.some((e) => e.is(stickyScrollEffect)));
 
     if (contentChanged) {
       this.clearCache();
@@ -418,4 +422,4 @@ class StickyScrollPlugin {
   }
 }
 
-export const scrollStickyPlugin = ViewPlugin.fromClass(StickyScrollPlugin, {});
+export const scrollStickyPlugin = /* #__PURE__ */ ViewPlugin.fromClass(StickyScrollPlugin, {});
