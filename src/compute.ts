@@ -1,4 +1,4 @@
-import type { EditorState } from "@codemirror/state";
+import type { EditorState, Line } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import type { SyntaxNode, Tree } from "@lezer/common";
 import { ensureSyntaxTree, foldNodeProp, foldService, language, syntaxTree } from "@codemirror/language";
@@ -101,6 +101,20 @@ function getStickyContextForRange(
 
   const found: StickyLine[] = [];
 
+  const pushStickyLine = (open: Line, closeLine: number, nodeFrom: number, nodeTo: number): void => {
+    const openLine = open.number;
+    if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
+      found.push({
+        lineNumber: openLine,
+        from: open.from,
+        to: open.to,
+        text: open.text,
+        nodeFrom,
+        nodeTo,
+      });
+    }
+  };
+
   const services = state.facet(foldService);
   if (services.length === 0) {
     let node: SyntaxNode | null = t.resolveInner(fromPos, 0);
@@ -133,17 +147,7 @@ function getStickyContextForRange(
                 // what delays the slide-away until the real closing brace.
                 const close = doc.lineAt(Math.min(owner.to, doc.length));
                 const closeLine = close.number;
-
-                if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
-                  found.push({
-                    lineNumber: openLine,
-                    from: open.from,
-                    to: open.to,
-                    text: open.text,
-                    nodeFrom: owner.from,
-                    nodeTo: owner.to,
-                  });
-                }
+                pushStickyLine(open, closeLine, owner.from, owner.to);
               }
             }
           }
@@ -163,18 +167,7 @@ function getStickyContextForRange(
             continue;
           }
           const nodeTo = Math.min(foldRange.to, doc.length);
-          const close = doc.lineAt(nodeTo);
-          const closeLine = close.number;
-          if (closeLine - openLine + 1 >= minBlockLines && closeLine >= topLineNumber) {
-            found.push({
-              lineNumber: openLine,
-              from: open.from,
-              to: open.to,
-              text: open.text,
-              nodeFrom: foldRange.from,
-              nodeTo,
-            });
-          }
+          pushStickyLine(open, doc.lineAt(nodeTo).number, foldRange.from, nodeTo);
         }
       }
     }
