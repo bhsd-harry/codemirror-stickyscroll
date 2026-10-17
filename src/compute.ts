@@ -88,9 +88,7 @@ function getStickyContextForRange(
   maxSticky: number
 ): StickyLine[] {
   const lang = state.facet(language);
-  if (!lang) return [];
-
-  if (t.length === 0) return [];
+  if (!lang || t.length === 0) return [];
 
   const doc = state.doc;
   if (fromPos > doc.length) return [];

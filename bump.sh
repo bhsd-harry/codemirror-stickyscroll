@@ -5,14 +5,14 @@ then
 elif [[ $2 == 'gh' ]]
 then
 	gsed -n "/## $1/,/##/{/^## .*/d;/./,\$!d;p}" CHANGELOG.md > release-notes.md
-	gh release create "$1" --notes-file release-notes.md -t "v$1" --verify-tag --latest="${3-true}"
+	gh release create "$1" -F release-notes.md -t "v$1" --verify-tag --latest="${3-true}"
 	rm release-notes.md
 else
 	npm run lint && npm run build
 	if [[ $? -eq 0 ]]
 	then
 		gsed -i -E "s/\"version\": \".+\"/\"version\": \"$1\"/" package.json
-		git fetch --prune --prune-tags origin
+		git fetch -p -P origin
 		git add -A
 		git commit -m "chore: bump version to $1"
 		git push
