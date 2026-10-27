@@ -1,6 +1,6 @@
-import config, {browserES10} from '@bhsd/code-standard';
+import config, {browserES10, getOxlintConfig} from '@bhsd/code-standard';
 
-export default [
+const oxlintConfig = getOxlintConfig([
 	...config,
 	browserES10,
 	{
@@ -80,4 +80,6 @@ export default [
 			'unicorn/prefer-spread': 0,
 		},
 	},
-];
+]);
+
+export default oxlintConfig;

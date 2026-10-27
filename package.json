@@ -28,10 +28,11 @@
 	"sideEffects": false,
 	"scripts": {
 		"prepublishOnly": "npm run build",
-		"lint:ts": "tsc --noEmit && eslint --cache .",
+		"lint:ts": "tsc --noEmit && oxlint && eslint --cache .",
 		"lint:md": "myMarkdownlint",
 		"lint:css": "stylelint --cache '**/*.css'",
 		"lint": "npm run lint:ts && npm run lint:css && npm run lint:md",
+		"migrate": "oxlint-migrate",
 		"build": "tsc && eslint --no-inline-config --no-config-lookup -c eslint.dist.js dist/*.js",
 		"test": "echo 'This package has no tests.'"
 	},
@@ -41,11 +42,13 @@
 		"@codemirror/view": "^6.0.0"
 	},
 	"devDependencies": {
-		"@bhsd/code-standard": "^5.0.0",
+		"@bhsd/code-standard": "^5.1.0",
 		"@codemirror/language": "^6.13.1",
 		"@codemirror/state": "^6.7.6",
 		"@codemirror/view": "^6.43.15",
-		"eslint": "^10.13.0",
+		"@oxlint/migrate": "^1.89.0",
+		"eslint": "^10.14.0",
+		"oxlint": "^1.89.0",
 		"stylelint": "^17.16.0",
 		"typescript": "^6.0.3"
 	}
