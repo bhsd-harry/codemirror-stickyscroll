@@ -1,4 +1,12 @@
 <!-- markdownlint-disable first-line-h1 line-length -->
+## 0.3.2
+
+*2026-11-15*
+
+**Fixed**
+
+- Disconnect the [MutationObserver](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver) when the plugin is destroyed
+
 ## 0.3.1
 
 *2026-10-16*

@@ -169,6 +169,7 @@ class StickyScrollPlugin {
     this.view.scrollDOM.removeEventListener("scroll", this.onScroll);
     this.observer?.disconnect();
     this.gutterObserver?.disconnect();
+    this.gutterMutationObserver?.disconnect();
     this.dom.remove();
     this.cache.clear();
   }
